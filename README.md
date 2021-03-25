@@ -1,4 +1,4 @@
-# re: Essential utilities missing in base R
+# evoprob: Evolve instances for optimization problems
 
 [![CRAN Status Badge](http://www.r-pkg.org/badges/version/evoprob)](http://cran.r-project.org/web/packages/evoprob)
 [![CRAN Downloads](http://cranlogs.r-pkg.org/badges/evoprob)](http://cran.rstudio.com/web/packages/evoprob/index.html)
