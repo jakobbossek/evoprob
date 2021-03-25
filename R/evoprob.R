@@ -19,6 +19,9 @@
 #'   of instances.
 #' @param max.iters [\code{integer(1)}]\cr
 #'   Stopping condition: maximum number of iterations.
+#' @param log.pop [\code{logical(1)}]\cr
+#'   Store the population in each iteration?
+#'   Defaults to \code{FALSE}.
 #' @param ... [any]\cr
 #'   Not used at the moment.
 #' @return [\code{list}]
@@ -31,6 +34,7 @@ evoprob = function(
   mut.fun,
   diversity.fun = NULL,
   max.iters = 10L,
+  log.pop = FALSE,
   ...
   ) {
 
@@ -42,20 +46,46 @@ evoprob = function(
   checkmate::assert_function(mut.fun)
   checkmate::assert_function(diversity.fun, null.ok = TRUE)
   max.iters = checkmate::asInt(max.iters, lower = 1L)
+  checkmate::assertFlag(log.pop)
+
+  if (is.null(diversity.fun) && (mu > 1L))
+    re::stopf("[evoprob::evoprob] For mu >= 2 diversity.fun must not be NULL.")
 
   # vars
   iter = 0L
   mu = length(P)
   st = Sys.time() # start time
 
+  # bookkeeping
+  # log = init_bookkeeping(n = max.iters, x = P, )
+
   # run algos and calculate fitness
   runres = lapply(P, runner.fun, ...)
-  if (is.null(names(runres[[1L]])))
-    re::stopf("[evoprob::evoprob] runner.res should return named vector of performance values.")
+
+  # Extract algorithm names
+  A = names(runres[[1L]])
+  Aperms = get_all_permutations(A)
+  divtab = rep(0L, length(Aperms))
+  names(divtab) = Aperms
+  div = NA_real_
+
+  if (is.null(A))
+    re::stopf("[evoprob::evoprob] runner.fun must return a *named* vector of performance values.")
   fP = unname(lapply(runres, fitness.fun, ...))
 
   # monitoring
   re::catf("[evoprob] Initialization done\n")
+
+  if (!is.null(diversity.fun) && (mu > 1L)) {
+    # FIXME: get_algorithm_ranking should have option to returns collapsed string
+    # FIXME: outsource in helper function init_diversity_table(...)
+    actual_order = sapply(lapply(runres, get_algorithm_ranking), re::collapse, sep = "-")
+    for (r in actual_order) {
+      divtab[r] = divtab[r] + 1L
+    }
+    div = diversity.fun(unname(divtab) / mu)
+  }
+  divtabinit = divtab
 
   # do EA magic
   while (iter < max.iters) {
@@ -63,19 +93,18 @@ evoprob = function(
     sti = Sys.time()
 
     # sample random individual
-    x = P[[sample(mu, size = 1L)]]
+    idx.parent = sample(mu, size = 1L)
+    x = P[[idx.parent]]
 
     # generate exactly one offspring
     y = mut.fun(x, ...)
     runresy = runner.fun(y, ...)
+    actual_order_y = re::collapse(get_algorithm_ranking(runresy), sep = "-")
     fy = unname(fitness.fun(runresy, ...))
 
     # now check if we have (1+1)-EA or (mu+1)-EA
     if (mu == 1L) {
       # simply replace population if mutant is better
-      # print(fy)
-      # print(fP[[1L]])
-      # print("===")
       if (is_better(fy, fP[[1L]])) {
         fP[[1L]] = fy
         P[[1L]] = y
@@ -83,23 +112,77 @@ evoprob = function(
       }
     } else {
       # now comes the diversity fun
-      re::stopf("[evoprob::evoprob] (mu+1)-EA not yet implemented :(")
+      #FIXME: outsource into update_diversity
+      divs = sapply(seq_len(mu), function(i) {
+        divtab2 = divtab
+        divtab2[actual_order[i]] = divtab2[actual_order[i]] - 1L
+        divtab2[actual_order_y] = divtab2[actual_order_y] + 1L
+        entropy(unname(divtab2) / mu)
+      })
+      max.div.idx = which.max(divs)
+      if (divs[max.div.idx] > div) {
+        # if entropy gets bigger by replacing some instance with y, do it
+        # and finish iteration
+        catf("Iter: %i, Improved diversity from %.4f to %.4f replacing %i-th individual.\n", iter, div, divs[max.div.idx], max.div.idx)
+        div = divs[max.div.idx]
+        divtab[actual_order[max.div.idx]] = divtab[actual_order[max.div.idx]] - 1L
+        divtab[actual_order_y] = divtab[actual_order_y] + 1L
+        actual_order[max.div.idx] = actual_order_y
+        P[[max.div.idx]] = y
+        fP[[max.div.idx]] = fy
+        runres[[max.div.idx]] = runresy
+      } else {
+        # otherwise, i.e. entropy cannot increase, replace instance which leads to
+        idx.same.order = which(actual_order == actual_order_y)
+        #catf("Same order: %i\n", length(idx.same.order))
+        #FIXME: remove element with the same count in divtab?
+        if (length(idx.same.order) == 0) {
+          re::catf("No elements with same order.\n")
+          next
+        }
+        #FIXME: here, fP[[i]] needs to be scalar, i.e. for noorder fitness
+        idx.same.order.min.f = which.min(as.numeric(fP)[idx.same.order])
+        #print(as.numeric(fP)[idx.same.order])
+        idx.replace = idx.same.order[idx.same.order.min.f]
+        #catf("Same order min fitness: %i\n", idx.replace)
+        if (is_better(fy, fP[[idx.replace]])) {
+          catf("Iter: %i, Cannot improve diversity. Replacing %i (f=%.4f) with mutant (f=%.4f).\n", iter, idx.replace, fP[[idx.replace]], fy)
+          P[[idx.replace]] = y
+          fP[[idx.replace]] = fy
+          runres[[idx.replace]] = runresy
+        } else {
+          catf("Iter: %i, Cannot improve neither diversity nor fitness.\n", iter, idx.replace, fP[[idx.replace]], fy)
+        }
+      }
+
+
+      #re::stopf("[evoprob::evoprob] (mu+1)-EA not yet implemented :(")
     }
 
+    #Sys.sleep(1)
     # monitoring
     iter = iter + 1L
     tpi = as.numeric(difftime(Sys.time(), sti, units = "secs"))
     tp = as.numeric(difftime(Sys.time(), st, units = "secs"))
     #FIXME: this works for (1+1) and scalar-fitness function only
-    re::catf("[evoprob] Iter %i (%.2f / %.2f), best-fitness: %.4f\n", iter, tpi, tp, fP[[1L]])
+    re::catf("[evoprob] Iter %i (%.2f / %.2f), diversity: %.4f, best-fitness: %.4f\n", iter, tpi, tp, div, fP[[1L]])
   }
 
   return(list(
     P = P,
     fP = fP,
-    runres = runres
+    runres = runres,
+    divtab = divtab,
+    runres = runres,
+    divtabinit = divtabinit
   ))
 }
+
+# init_bookkeeping = function() {
+#   env = new.env()
+#   env$log =
+# }
+
 
 is_better = function(x, y) {
   n = length(x)
