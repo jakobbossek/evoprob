@@ -1,0 +1,21 @@
+Package: evoprob
+Title: Evolutionary Algorithm to Produce Diverse Problems
+Description: An EA which aims for the generation of a diverse set of instances for combinatorial optimization problems for \eqn{n \geq 2} algorithms. Diverse means that the resulting instance set covers all \eqn{n!} possible rankings of the algorithms on the evolved problems equally.
+Version: 1.0.0
+Authors@R: person("Jakob", "Bossek", email = "j.bossek@gmail.com", role = c("aut", "cre"))
+Depends:
+  R (>= 3.1.0)
+Imports:
+  checkmate,
+  re (>= 1.0.0),
+  ecr (>= 2.0.0)
+Suggests:
+  testthat
+License: BSD_2_clause + file LICENSE
+URL: https://github.com/jakobbossek/evoprob
+BugReports: https://github.com/jakobbossek/evoprob/issues
+Encoding: UTF-8
+LazyData: true
+ByteCompile: true
+Roxygen: list(wrap = FALSE)
+RoxygenNote: 6.1.1
