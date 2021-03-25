@@ -28,10 +28,10 @@ fitness_diverse_noorder = function(x, maximize = FALSE) {
   if (n == 2L)
     return(x[2L] - x[1L])
   # NOTE: R-loop not critical since n is < 6 for all reasonable setups
-  for (i in 2:seq_len(n - 1L)) {
+  for (i in 2:(n - 1L)) {
     f = f + ((x[i + 1L] - x[i]) * (x[i] - x[i - 1L]))
   }
-  return(f)
+  return(unname(f))
 }
 
 #' @title Explicit order fitness function.
@@ -68,11 +68,13 @@ fitness_diverse_explicit = function(x, ranking, maximize = FALSE) {
       bad = c(bad, list(c(pi1, pi2)))
     }
   }
+
   ngood = length(good)
-  fbad = -Inf
-  if (length(fbad) > 0) {
+  # maximum is zero since fbad is the sum of "bad directions"
+  fbad = 0
+  if (length(bad) > 0) {
     fbad = sum(sapply(bad, function(p) {
-      abs(x[p[1L]] - x[p[2L]])
+      -(x[p[1L]] - x[p[2L]])
     }))
   }
   fgood = -Inf
