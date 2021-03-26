@@ -57,9 +57,6 @@ evoprob = function(
   st = Sys.time() # start time
   do.diversity = !is.null(diversity.fun) && (mu > 1L)
 
-  # bookkeeping
-  # log = init_bookkeeping(n = max.iters, x = P, )
-
   # run algos and calculate fitness
   runres = lapply(P, runner.fun, ...)
 
@@ -86,6 +83,10 @@ evoprob = function(
     div = diversity.fun(unname(divtab) / mu)
   }
   divtabinit = divtab
+
+  # bookkeeping
+  # log = init_bookkeeping(n = max.iters, log.pop = log.pop,
+  #   x = P, div = div)
 
   # do EA magic
   while (iter < max.iters) {

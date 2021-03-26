@@ -38,7 +38,7 @@
 #'   Default is \code{TRUE}.
 #' @return [\code{function(x, ...)}] Factorized function (see description).
 #' @export
-make_objective_function = function(A, A.pars, runner.fun, repls = 1L, aggr.fun = base::mean, named.result = TRUE) {
+make_runner_function = function(A, A.pars, runner.fun, repls = 1L, aggr.fun = base::mean, named.result = TRUE) {
   checkmate::assert_character(A, min.len = 2L, any.missing = FALSE, all.missing = FALSE)
   n = length(A)
   checkmate::assert_list(A.pars, len = n, any.missing = FALSE, all.missing = FALSE)
