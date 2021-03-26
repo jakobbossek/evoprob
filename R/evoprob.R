@@ -19,9 +19,6 @@
 #'   of instances.
 #' @param max.iters [\code{integer(1)}]\cr
 #'   Stopping condition: maximum number of iterations.
-#' @param log.pop [\code{logical(1)}]\cr
-#'   Store the population in each iteration?
-#'   Defaults to \code{FALSE}.
 #' @param ... [any]\cr
 #'   Not used at the moment.
 #' @return [\code{list}]
@@ -34,7 +31,6 @@ evoprob = function(
   mut.fun,
   diversity.fun = NULL,
   max.iters = 10L,
-  log.pop = FALSE,
   ...
   ) {
 
@@ -46,7 +42,6 @@ evoprob = function(
   checkmate::assert_function(mut.fun)
   checkmate::assert_function(diversity.fun, null.ok = TRUE)
   max.iters = checkmate::asInt(max.iters, lower = 1L)
-  checkmate::assertFlag(log.pop)
 
   if (is.null(diversity.fun) && (mu > 1L))
     re::stopf("[evoprob::evoprob] For mu >= 2 diversity.fun must not be NULL.")
@@ -83,10 +78,6 @@ evoprob = function(
     div = diversity.fun(unname(divtab) / mu)
   }
   divtabinit = divtab
-
-  # bookkeeping
-  # log = init_bookkeeping(n = max.iters, log.pop = log.pop,
-  #   x = P, div = div)
 
   # do EA magic
   while (iter < max.iters) {
@@ -161,11 +152,7 @@ evoprob = function(
     iter = iter + 1L
     tpi = as.numeric(difftime(Sys.time(), sti, units = "secs"))
     tp = as.numeric(difftime(Sys.time(), st, units = "secs"))
-    #FIXME: this works for (1+1) and scalar-fitness function only
-    re::catf("[evoprob]
-      Iter %i (%.2f / %.2f),
-      diversity: %.4f,
-      best-fitness: %.4f\n",
+    re::catf("[evoprob] Iter %i (%.2f / %.2f), div: %.4f, f(P[1]): %.4f\n",
       iter, tpi, tp, div, fP[[1L]])
   }
 
@@ -178,12 +165,6 @@ evoprob = function(
     divtabinit = divtabinit
   ))
 }
-
-# init_bookkeeping = function() {
-#   env = new.env()
-#   env$log =
-# }
-
 
 is_better = function(x, y) {
   n = length(x)

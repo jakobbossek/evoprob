@@ -5,7 +5,7 @@
 \title{Instance-evolving EA.}
 \usage{
 evoprob(n, P, runner.fun, fitness.fun, mut.fun, diversity.fun = NULL,
-  max.iters = 10L, log.pop = FALSE, ...)
+  max.iters = 10L, ...)
 }
 \arguments{
 \item{n}{[\code{integer(1L)}]\cr
@@ -31,10 +31,6 @@ of instances.}
 
 \item{max.iters}{[\code{integer(1)}]\cr
 Stopping condition: maximum number of iterations.}
-
-\item{log.pop}{[\code{logical(1)}]\cr
-Store the population in each iteration?
-Defaults to \code{FALSE}.}
 
 \item{...}{[any]\cr
 Not used at the moment.}
