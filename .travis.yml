@@ -11,12 +11,10 @@ r_github_packages:
 # Fix problem with error/warning: no DISPLAY variable so Tk is not available
 # Source: https://github.com/travis-ci/travis-ci/issues/6987
 before_install:
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
+  - sudo apt-get install r-cran-tcltk2
 
 after_success:
   - Rscript -e 'library(covr);coveralls()'
-
 
 notifications:
   email:
