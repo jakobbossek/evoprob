@@ -13,7 +13,7 @@ setup = function(fun, ...) {
   }
 }
 
-get_all_permutations = function(x) {
+get_all_permutations = function(x, sep = "---") {
   n = length(x)
   l = replicate(n, list(x))
   l = c(l, list(stringsAsFactors = FALSE))
@@ -21,6 +21,6 @@ get_all_permutations = function(x) {
   all = do.call(expand.grid, l)
   perms = all[apply(all, 1L, function(x) {length(unique(x)) == n}), ]
 
-  perms = unname(apply(perms, 1L, re::collapse, sep = "-"))
+  perms = unname(apply(perms, 1L, re::collapse, sep = sep))
   return(perms)
 }

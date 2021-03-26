@@ -55,6 +55,7 @@ evoprob = function(
   iter = 0L
   mu = length(P)
   st = Sys.time() # start time
+  do.diversity = !is.null(diversity.fun) && (mu > 1L)
 
   # bookkeeping
   # log = init_bookkeeping(n = max.iters, x = P, )
@@ -76,10 +77,9 @@ evoprob = function(
   # monitoring
   re::catf("[evoprob] Initialization done\n")
 
-  if (!is.null(diversity.fun) && (mu > 1L)) {
-    # FIXME: get_algorithm_ranking should have option to returns collapsed string
+  if (do.diversity) {
     # FIXME: outsource in helper function init_diversity_table(...)
-    actual_order = sapply(lapply(runres, get_algorithm_ranking), re::collapse, sep = "-")
+    actual_order = get_algorithm_ranking(runres, as.string = TRUE)
     for (r in actual_order) {
       divtab[r] = divtab[r] + 1L
     }
@@ -99,7 +99,7 @@ evoprob = function(
     # generate exactly one offspring
     y = mut.fun(x, ...)
     runresy = runner.fun(y, ...)
-    actual_order_y = re::collapse(get_algorithm_ranking(runresy), sep = "-")
+    actual_order_y = get_algorithm_ranking(runresy, as.string = TRUE)
     fy = unname(fitness.fun(runresy, ...))
 
     # now check if we have (1+1)-EA or (mu+1)-EA
@@ -154,26 +154,26 @@ evoprob = function(
           catf("Iter: %i, Cannot improve neither diversity nor fitness.\n", iter, idx.replace, fP[[idx.replace]], fy)
         }
       }
-
-
-      #re::stopf("[evoprob::evoprob] (mu+1)-EA not yet implemented :(")
     }
 
-    #Sys.sleep(1)
     # monitoring
     iter = iter + 1L
     tpi = as.numeric(difftime(Sys.time(), sti, units = "secs"))
     tp = as.numeric(difftime(Sys.time(), st, units = "secs"))
     #FIXME: this works for (1+1) and scalar-fitness function only
-    re::catf("[evoprob] Iter %i (%.2f / %.2f), diversity: %.4f, best-fitness: %.4f\n", iter, tpi, tp, div, fP[[1L]])
+    re::catf("[evoprob]
+      Iter %i (%.2f / %.2f),
+      diversity: %.4f,
+      best-fitness: %.4f\n",
+      iter, tpi, tp, div, fP[[1L]])
   }
 
   return(list(
     P = P,
     fP = fP,
     runres = runres,
-    divtab = divtab,
     runres = runres,
+    divtab = divtab,
     divtabinit = divtabinit
   ))
 }
