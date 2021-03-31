@@ -61,6 +61,8 @@ init_logger = function(what, init.size, at = NULL, to = NULL) {
   log$to = to
   log$log.to.file = !is.null(to)
 
+  class(log) = "evoprob_logger"
+
   return(log)
 }
 
