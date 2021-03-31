@@ -5,7 +5,7 @@
 \title{Instance-evolving EA.}
 \usage{
 evoprob(n, P, runner.fun, fitness.fun, mut.fun, diversity.fun = NULL,
-  max.iters = 10L, ...)
+  max.iters = 10L, logger = NULL, ...)
 }
 \arguments{
 \item{n}{[\code{integer(1L)}]\cr
@@ -31,6 +31,19 @@ of instances.}
 
 \item{max.iters}{[\code{integer(1)}]\cr
 Stopping condition: maximum number of iterations.}
+
+\item{logger}{[\code{evoprob_logger}]\cr
+Optional logger environemt (see \code{\link{init_logger}}). Possible
+values for parameter \code{what} are
+\describe{
+  \item{iter = "numeric"}{\strong{Mandatory} iteration counter.}
+  \item{time = "numeric"}{Time passed in seconds.}
+  \item{P = "list"}{The population.}
+  \item{fP = "list"}{The fitness values.}
+  \item{div = "numeric"}{Scalar diversity measure.}
+  \item{divtab = "list"}{Vector of absolute frequencies of algorithm rankings.}
+}
+Default is \code{NULL}, i.e., logging is not active.}
 
 \item{...}{[any]\cr
 Not used at the moment.}

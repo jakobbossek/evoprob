@@ -19,6 +19,18 @@
 #'   of instances.
 #' @param max.iters [\code{integer(1)}]\cr
 #'   Stopping condition: maximum number of iterations.
+#' @param logger [\code{evoprob_logger}]\cr
+#'   Optional logger environemt (see \code{\link{init_logger}}). Possible
+#'   values for parameter \code{what} are
+#'   \describe{
+#'     \item{iter = "numeric"}{\strong{Mandatory} iteration counter.}
+#'     \item{time = "numeric"}{Time passed in seconds.}
+#'     \item{P = "list"}{The population.}
+#'     \item{fP = "list"}{The fitness values.}
+#'     \item{div = "numeric"}{Scalar diversity measure.}
+#'     \item{divtab = "list"}{Vector of absolute frequencies of algorithm rankings.}
+#'   }
+#'   Default is \code{NULL}, i.e., logging is not active.
 #' @param ... [any]\cr
 #'   Not used at the moment.
 #' @return [\code{list}]
@@ -31,6 +43,7 @@ evoprob = function(
   mut.fun,
   diversity.fun = NULL,
   max.iters = 10L,
+  logger = NULL,
   ...
   ) {
 
@@ -42,6 +55,7 @@ evoprob = function(
   checkmate::assert_function(mut.fun)
   checkmate::assert_function(diversity.fun, null.ok = TRUE)
   max.iters = checkmate::asInt(max.iters, lower = 1L)
+  checkmate::assert_class(logger, classes = "evoprob_logger", null.ok = TRUE)
 
   if (is.null(diversity.fun) && (mu > 1L))
     re::stopf("[evoprob::evoprob] For mu >= 2 diversity.fun must not be NULL.")
@@ -51,6 +65,7 @@ evoprob = function(
   mu = length(P)
   st = Sys.time() # start time
   do.diversity = !is.null(diversity.fun) && (mu > 1L)
+  do.log = !is.null(logger)
 
   # run algos and calculate fitness
   runres = lapply(P, runner.fun, ...)
@@ -78,6 +93,9 @@ evoprob = function(
     div = diversity.fun(unname(divtab) / mu)
   }
   divtabinit = divtab
+
+  if (do.log)
+    update_logger(logger, iter = iter, time = as.numeric(difftime(Sys.time(), st, units = "secs")), P = P, fP = fP, div = div, divtab = divtab)
 
   # do EA magic
   while (iter < max.iters) {
@@ -154,6 +172,8 @@ evoprob = function(
     tp = as.numeric(difftime(Sys.time(), st, units = "secs"))
     re::catf("[evoprob] Iter %i (%.2f / %.2f), div: %.4f, f(P[1]): %.4f\n",
       iter, tpi, tp, div, fP[[1L]])
+    if (do.log)
+      update_logger(logger, iter = iter, time = as.numeric(difftime(Sys.time(), st, units = "secs")), P = P, fP = fP, div = div, divtab = divtab)
   }
 
   return(list(
@@ -162,7 +182,8 @@ evoprob = function(
     runres = runres,
     runres = runres,
     divtab = divtab,
-    divtabinit = divtabinit
+    divtabinit = divtabinit,
+    logger = logger
   ))
 }
 
