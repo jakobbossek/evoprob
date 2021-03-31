@@ -4,8 +4,9 @@
 \alias{evoprob}
 \title{Instance-evolving EA.}
 \usage{
-evoprob(n, P, runner.fun, fitness.fun, mut.fun, diversity.fun = NULL,
-  max.iters = 10L, logger = NULL, ...)
+evoprob(n, P, maximize = FALSE, runner.fun, fitness.fun, mut.fun,
+  diversity.fun = NULL, max.iters = 10L, max.time = Inf,
+  logger = NULL, ...)
 }
 \arguments{
 \item{n}{[\code{integer(1L)}]\cr
@@ -14,6 +15,10 @@ Desired instance size.}
 \item{P}{[\code{list}]\cr
 Initial population.
 This is problem dependent. Therefore, the used must provide it.}
+
+\item{maximize}{[\code{logical(1)}]\cr
+Is the goal to maximize performance values?
+Defaults to \code{FALSE}.}
 
 \item{runner.fun}{[\code{function}]\cr
 Function used to run algorithms on problem instance.
@@ -31,6 +36,11 @@ of instances.}
 
 \item{max.iters}{[\code{integer(1)}]\cr
 Stopping condition: maximum number of iterations.}
+
+\item{max.time}{[\code{integer(1)}]\cr
+Maximum time  in seconds.
+Default is \code{NULL}, i.e. the number of iterations serves as the single
+termination criterion.}
 
 \item{logger}{[\code{evoprob_logger}]\cr
 Optional logger environemt (see \code{\link{init_logger}}). Possible

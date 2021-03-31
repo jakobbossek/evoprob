@@ -7,6 +7,9 @@
 #' @param P [\code{list}]\cr
 #'   Initial population.
 #'   This is problem dependent. Therefore, the used must provide it.
+#' @param maximize [\code{logical(1)}]\cr
+#'   Is the goal to maximize performance values?
+#'   Defaults to \code{FALSE}.
 #' @param runner.fun [\code{function}]\cr
 #'   Function used to run algorithms on problem instance.
 #'   Should return aggregated performance values.
@@ -19,6 +22,10 @@
 #'   of instances.
 #' @param max.iters [\code{integer(1)}]\cr
 #'   Stopping condition: maximum number of iterations.
+#' @param max.time [\code{integer(1)}]\cr
+#'   Maximum time  in seconds.
+#'   Default is \code{NULL}, i.e. the number of iterations serves as the single
+#'   termination criterion.
 #' @param logger [\code{evoprob_logger}]\cr
 #'   Optional logger environemt (see \code{\link{init_logger}}). Possible
 #'   values for parameter \code{what} are
@@ -38,11 +45,13 @@
 evoprob = function(
   n,
   P,
+  maximize = FALSE,
   runner.fun,
   fitness.fun,
   mut.fun,
   diversity.fun = NULL,
   max.iters = 10L,
+  max.time = Inf,
   logger = NULL,
   ...
   ) {
@@ -50,11 +59,16 @@ evoprob = function(
   # sanity checks
   n = checkmate::asInt(n, lower = 5L)
   checkmate::assert_list(P, min.len = 1L, any.missing = FALSE, all.missing = FALSE)
+  checkmate::assert_flag(maximize)
   checkmate::assert_function(runner.fun)
   checkmate::assert_function(fitness.fun)
   checkmate::assert_function(mut.fun)
   checkmate::assert_function(diversity.fun, null.ok = TRUE)
   max.iters = checkmate::asInt(max.iters, lower = 1L)
+  if (!is.null(max.time))
+    checkmate::assert_integerish(max.time, lower = 1L)
+  else
+    max.time = Inf
   checkmate::assert_class(logger, classes = "evoprob_logger", null.ok = TRUE)
 
   if (is.null(diversity.fun) && (mu > 1L))
@@ -86,7 +100,7 @@ evoprob = function(
 
   if (do.diversity) {
     # FIXME: outsource in helper function init_diversity_table(...)
-    actual_order = get_algorithm_ranking(runres, as.string = TRUE)
+    actual_order = get_algorithm_ranking(runres, maximize = maximize, as.string = TRUE)
     for (r in actual_order) {
       divtab[r] = divtab[r] + 1L
     }
@@ -94,11 +108,13 @@ evoprob = function(
   }
   divtabinit = divtab
 
+  tp = as.numeric(difftime(Sys.time(), st, units = "secs"))
+
   if (do.log)
-    update_logger(logger, iter = iter, time = as.numeric(difftime(Sys.time(), st, units = "secs")), P = P, fP = fP, div = div, divtab = divtab)
+    update_logger(logger, iter = iter, time = tp, P = P, fP = fP, div = div, divtab = divtab)
 
   # do EA magic
-  while (iter < max.iters) {
+  while ((iter < max.iters) && (tp < max.time)) {
     # start time iteration
     sti = Sys.time()
 
@@ -109,7 +125,7 @@ evoprob = function(
     # generate exactly one offspring
     y = mut.fun(x, ...)
     runresy = runner.fun(y, ...)
-    actual_order_y = get_algorithm_ranking(runresy, as.string = TRUE)
+    actual_order_y = get_algorithm_ranking(runresy, maximize = maximize, as.string = TRUE)
     fy = unname(fitness.fun(runresy, ...))
 
     # now check if we have (1+1)-EA or (mu+1)-EA
