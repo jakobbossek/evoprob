@@ -4,8 +4,14 @@
 \alias{make_runner_function}
 \title{Factory for objective functions.}
 \usage{
-make_runner_function(A, A.pars, runner.fun, repls = 1L,
-  aggr.fun = base::mean, named.result = TRUE)
+make_runner_function(
+  A,
+  A.pars,
+  runner.fun,
+  repls = 1L,
+  aggr.fun = base::mean,
+  named.result = TRUE
+)
 }
 \arguments{
 \item{A}{[\code{character}]\cr

@@ -4,8 +4,7 @@
 \alias{get_algorithm_ranking}
 \title{Get algorithm ranking.}
 \usage{
-get_algorithm_ranking(x, maximize = FALSE, as.string = FALSE,
-  sep = "---")
+get_algorithm_ranking(x, maximize = FALSE, as.string = FALSE, sep = "---")
 }
 \arguments{
 \item{x}{[\code{numeric} | \code{list of numeric vectors}]\cr

@@ -4,9 +4,19 @@
 \alias{evoprob}
 \title{Instance-evolving EA.}
 \usage{
-evoprob(n, P, maximize = FALSE, runner.fun, fitness.fun, mut.fun,
-  diversity.fun = NULL, max.iters = 10L, max.time = Inf,
-  logger = NULL, ...)
+evoprob(
+  n,
+  P,
+  maximize = FALSE,
+  runner.fun,
+  fitness.fun,
+  mut.fun,
+  diversity.fun = NULL,
+  max.iters = 10L,
+  max.time = Inf,
+  logger = NULL,
+  ...
+)
 }
 \arguments{
 \item{n}{[\code{integer(1L)}]\cr

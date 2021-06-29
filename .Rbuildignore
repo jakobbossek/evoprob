@@ -2,3 +2,8 @@
 ^\.Rproj\.user$
 .travis.yml
 studies
+^codecov\.yml$
+^\.github$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

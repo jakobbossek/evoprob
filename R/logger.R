@@ -89,7 +89,7 @@ update_logger = function(log, log.stuff = list(), ...) {
   log.names = names(log.stuff)
 
   # sanity checks
-  if (!re::is.subset(log$what.names, log.names))
+  if (!re::is_subset(log$what.names, log.names))
     re::stopf("[evoprob::update_logger] Logger is ought to log fields '%s', but no matching arguments were passed to update_logger.",
       re::collapse(setdiff(log$what.names, log.names), sep = ", "))
 
